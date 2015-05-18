@@ -1,0 +1,9 @@
+body {background: #eee;font-size: 14px;font-family: arial}
+
+.containerGo .board{ height: auto; width: auto;}
+
+.containerGo .board .line .cell{height: 100px; width: 100px;border: #000 solid 5px}
+
+.containerGo .board .line .cell.black{background: #000;}
+
+.containerGo .board .line .cell.white{background: #fff;}
