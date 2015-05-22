@@ -15,18 +15,21 @@ Board.prototype =
 		this.createPlayer(2,"la tortue","white");
 		this.actualPlayer = 1;
 
-		this.create(6);
+		this.createBoard(6);
 		this.boardPhysic = this.print(this.main,this.boardVirtual);
-		this.cell = this.boardPhysic.find(".cell");
+		this.cells = this.boardPhysic.find(".cell");
 
 		var that = this;
 
-		this.cell.on("click",function()
+		this.cells.on("click",function()
 		{
 			var virtualCell = that.physicToVirtual(this);
+			console.log(virtualCell);
+			console.log(that.boardVirtual[virtualCell['column']][virtualCell['line']].checked);
 
-			if ( virtualCell == 0 && that.checkCell(virtualCell['column'],virtualCell['line'],virtualCell['column'],virtualCell['line']) == true )
-				that.changeValueCell(this,virtualCell['column'],virtualCell['line']);
+			if ( virtualCell == 0 && that.checkCell(virtualCell['column'],virtualCell['line'],0) > 0 )
+				console.log("c'est pas la condition bitch");
+				that.changeValueCell(this,virtualCell['column'],virtualCell['line'],that.player[that.actualPlayer]);
 		});
 
 
@@ -42,7 +45,7 @@ Board.prototype =
 		return virtual;
 	},
 
-	create : function(size)
+	createBoard : function(size)
 	{
 		var that = this;
 
@@ -51,47 +54,103 @@ Board.prototype =
 			that.boardVirtual[i] = new Array;
 			for ( j = 0; j < size + 2; j ++)
 			{
-				
-				that.boardVirtual[i][j] = 0;
+				that.boardVirtual[i][j] = new that.cell(i,j);
 			}
 		}
 	},
 
-	changeValueCell : function(cell,column,line)
+	cell : function(column,line)
 	{
-
-		this.boardVirtual[column][line] = this.actualPlayer;
-		$(cell).addClass(this.player[this.actualPlayer].color);
+		this.id = column + "-" + line; 
+		this.column = column;
+		this.line = line;
+		this.state = 0;
+		this.checked = 0;
 	},
 
-	checkCell : function(column,line,columnHist,lineHist)
+	changeValueCell : function(cell,column,line,player)
+	{
+		this.boardVirtual[column][line].state = player.value;
+		$(cell).addClass(player.color);
+	},
+
+	clearChecked : function()
+	{
+		var that = this;
+		for ( i = 0; i < that.boardVirtual.length; i ++)
+		{
+			for ( j = 0; j < that.boardVirtual[i].length; j ++)
+			{
+				that.boardVirtual[i][j].checked = 0;
+			}
+		}
+	},
+
+	checkCell : function(column,line,nbLiberty)
 	{
 
 		var that = this;
 
-		if ( ( this.boardVirtual[column + 1][line] == 0 && ( (column + 1) != columnHist || line != lineHist ) ) || ( this.boardVirtual[column - 1][line] == 0 && ( (column - 1) != columnHist || line != lineHist ) ) || ( this.boardVirtual[column][line + 1] == 0 && ( column != columnHist || (line + 1) != lineHist ) ) || ( this.boardVirtual[column][line - 1] == 0 && ( column != columnHist || (line - 1) != lineHist ) ) )
+		console.log(nbLiberty);
+		// console.log(this.physicToVirtual(this));
+		this.boardVirtual[column][line].checked = 1;
+
+		console.log(this.boardVirtual[column][line].checked);
+
+
+		if ( this.boardVirtual[column + 1][line].state == 0 && this.boardVirtual[column + 1][line].checked == 0 )
 		{
-			return true	
+			this.boardVirtual[column + 1][line].checked = 1;
+			nbLiberty ++;
+			console.log(nbLiberty + "add liberty");	
+		}
+			
+
+		if ( this.boardVirtual[column - 1][line].state == 0 && this.boardVirtual[column - 1][line].checked == 0  )
+		{
+			this.boardVirtual[column - 1][line].checked = 1;	
+			nbLiberty ++;
+			console.log(nbLiberty + "add liberty");	
 		}
 
-		if ( this.boardVirtual[column + 1][line] == this.actualPlayer )
+		if ( this.boardVirtual[column][line + 1].state == 0 && this.boardVirtual[column][line + 1].checked == 0  )
 		{
-			return that.checkCell(column + 1,line,columnHist,lineHist);
-		}
-		if ( this.boardVirtual[column - 1][line] == this.actualPlayer )
-		{
-			return that.checkCell(column - 1,line,columnHist,lineHist);
-		}
-		if ( this.boardVirtual[column][line + 1] == this.actualPlayer )
-		{
-			return that.checkCell(column,line + 1,columnHist,lineHist);
-		}
-		if ( this.boardVirtual[column][line - 1] == this.actualPlayer )
-		{
-			return that.checkCell(column,line - 1,columnHist,lineHist);
+			this.boardVirtual[column][line + 1].checked = 1;	
+			nbLiberty ++;
+			console.log(nbLiberty + "add liberty");	
 		}
 
-		return false;
+		if ( this.boardVirtual[column][line - 1].state == 0 && this.boardVirtual[column][line - 1].checked == 0  )
+		{
+			this.boardVirtual[column][line - 1].checked = 1;	
+			nbLiberty ++;
+			console.log(nbLiberty + "add liberty");	
+		}
+		
+		console.log(nbLiberty);
+
+		if ( this.boardVirtual[column + 1][line].state == this.actualPlayer && (this.boardVirtual[column + 1][line].checked == 0))
+		{
+			console.log(nbLiberty + "récursif");
+			return that.checkCell(column + 1,line,nbLiberty);
+		}
+		if ( this.boardVirtual[column - 1][line].state == this.actualPlayer && (this.boardVirtual[column - 1][line].checked == 0))
+		{
+			console.log(nbLiberty + "récursif");
+			return that.checkCell(column - 1,line,nbLiberty);
+		}
+		if ( this.boardVirtual[column][line + 1].state == this.actualPlayer && (this.boardVirtual[column][line + 1].checked == 0))
+		{
+			console.log(nbLiberty + "récursif");
+			return that.checkCell(column,line + 1,nbLiberty);
+		}
+		if ( this.boardVirtual[column][line - 1].state == this.actualPlayer && (this.boardVirtual[column][line - 1].checked == 0))
+		{
+			console.log(nbLiberty + "récursif");
+			return that.checkCell(column,line - 1,nbLiberty);
+		}
+
+		return nbLiberty;
 	},
 
 	updateBoard : function(){
@@ -121,6 +180,7 @@ Board.prototype =
 	{
 		this.player[valuePlayer] = {
 			name : name,
+			value : valuePlayer,
 			color : colorPlayer,
 			score : 0,
 		};
